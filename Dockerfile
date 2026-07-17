@@ -21,8 +21,12 @@ ENV LANG=C.UTF-8 \
     MISE_DATA_DIR=${CACHE_ROOT}/mise \
     MISE_CONFIG_DIR=/home/${USER}/.config/mise \
     MISE_CACHE_DIR=${CACHE_ROOT}/mise-cache \
+    MISE_RUBY_COMPILE=false \
+    MISE_TRUSTED_CONFIG_PATHS=/work \
+    XDG_STATE_HOME=${CACHE_ROOT}/xdg-state \
     BUNDLE_PATH=${CACHE_ROOT}/bundle \
     BUNDLE_CACHE_PATH=${CACHE_ROOT}/rubygems \
+    BUNDLE_CLEAN=false \
     YARN_CACHE_FOLDER=${CACHE_ROOT}/yarn-cache \
     YARN_OFFLINE_MIRROR=${CACHE_ROOT}/yarn \
     YARN_GLOBAL_FOLDER=${CACHE_ROOT}/yarn-global \
@@ -36,21 +40,38 @@ ENV LANG=C.UTF-8 \
     PATH=/home/${USER}/.local/bin:${CACHE_ROOT}/mise/shims:${PATH} \
     HOME=/home/${USER}
 
-# Minimal base + common shells (bash default; ksh/sh/zsh/fish available).
-# /bin/sh is dash on Ubuntu and is covered via ~/.profile on login.
+# Base shells + compilers/headers so mise (ruby-build/python-build), native
+# gems, and pip/npm extensions can compile when prebuilt wheels/binaries are
+# missing. /bin/sh is dash on Ubuntu (login via ~/.profile).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        autoconf \
+        bison \
+        build-essential \
         ca-certificates \
         curl \
         fish \
         git \
         less \
+        libbz2-dev \
+        libffi-dev \
+        libgdbm-dev \
+        liblzma-dev \
+        libncurses-dev \
+        libreadline-dev \
+        libsqlite3-dev \
+        libssl-dev \
+        libxml2-dev \
+        libxslt1-dev \
+        libyaml-dev \
         ksh93u+m \
+        pkg-config \
         sudo \
         tzdata \
         unzip \
         wget \
         vim-tiny \
+        zlib1g-dev \
         zsh \
     && rm -rf /var/lib/apt/lists/*
 

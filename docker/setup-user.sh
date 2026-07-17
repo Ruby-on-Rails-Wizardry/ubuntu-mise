@@ -79,6 +79,8 @@ prepare_home() {
 
   log "ensuring ${HOME_DIR}"
   mkdir -p "${HOME_DIR}"
+  # Silence Ubuntu /etc/bash.bashrc "run a command as administrator" banner.
+  touch "${HOME_DIR}/.sudo_as_admin_successful"
   chown -R "${name}:${name}" "${HOME_DIR}"
 }
 
