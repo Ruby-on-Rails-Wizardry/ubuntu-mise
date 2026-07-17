@@ -245,6 +245,13 @@ git push github master
 git push gitlab master
 ```
 
+## Releases
+
+Versioned shipping: **[docs/RELEASE.md](docs/RELEASE.md)**. History: **[CHANGELOG.md](CHANGELOG.md)**.  
+Coordinated multi-flavor releases: [docker-mise docs/RELEASE.md](https://github.com/Ruby-on-Rails-Wizardry/docker-mise/blob/master/docs/RELEASE.md).
+
+Shortcuts: **send it** / **ship it** / **cut a release** mean run that process end-to-end (including `gh release create`).
+
 ## Related
 
 - Sibling base images (Alpine / Arch) — same Task + `bin/*` API  
