@@ -28,6 +28,7 @@ Two **parallel** runtimes — same `/work` + `/cache` contract:
 | First-time setup | `task setup` / `./bin/setup` | `task compose:setup` / `./bin/compose-setup` |
 | Shell | `task shell` / `./bin/shell` | `task compose:shell` / `./bin/compose-shell` |
 | One-shot | `task run -- cmd` / `./bin/run` | `task compose:run -- cmd` / `./bin/compose run --rm dev …` |
+| Rails sample | — | `task compose:app` / `./bin/compose-app` |
 | Build only | `task build` / `./bin/build` | `task compose:build` / `./bin/compose build` |
 | Verify image | `task verify` / `./bin/verify` | (same) |
 
@@ -46,6 +47,7 @@ Two **parallel** runtimes — same `/work` + `/cache` contract:
 | Shell mise activation | `docker/setup-mise-shell.sh` |
 | Default language tool versions | `mise.toml` (starter pins; apps override) |
 | Sample project (warm/smoke) | `Gemfile*`, `package.json`/`yarn.lock`, `requirements.txt`, `scripts/smoke.sh` |
+| Realistic Rails sample | `sample_app/` git submodule → compose service `app` (`bin/compose-app`) |
 | Host run helpers | `bin/lib.sh` |
 
 ## Verify before claiming done
@@ -67,7 +69,7 @@ task doctor
 ```
 ubuntu-mise/
 ├── Dockerfile
-├── compose.yml           # Compose path (single dev service)
+├── compose.yml           # Compose path: dev + profiled app (sample_app)
 ├── compose.env.example
 ├── Taskfile.yml          # task recipes → bin/* (+ compose:*)
 ├── mise.toml             # default ruby/node/yarn/python pins
@@ -77,6 +79,7 @@ ubuntu-mise/
 ├── yarn.lock
 ├── requirements.txt      # sample pip deps
 ├── scripts/smoke.sh      # post-setup sample smoke test
+├── sample_app/           # submodule: realistic Rails app for compose app service
 ├── bin/                  # host CLI (no Task required)
 ├── docker/               # image build scripts
 ├── CHANGELOG.md          # Keep a Changelog
