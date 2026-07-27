@@ -13,6 +13,7 @@ It is **not** the multi-app Rails cluster (`../wf/`). No project `wf` mount is b
 | Base OS | Ubuntu 24.04 LTS |
 | User | `dev` (override `USER` / `IMAGE_USER`), UID/GID via build args |
 | Tool manager | mise (`MISE_DATA_DIR=/cache/mise`); Ruby prefers precompiled; compile toolchain in image |
+| Mise install timing | **Development (this image):** `mise install` at **runtime** into **`/cache`**. **Production default:** no mise (official language images). **If prod uses mise:** builder stage only; slim runtime without mise activate/install on boot. |
 | Build toolchain | `build-essential` + OpenSSL/YAML/zlib/ffi/… headers for native gems & language builds |
 | Shells | bash, ksh, sh (dash), zsh, fish activate mise on login |
 | Project mount | Host `PROJECT` or `$PWD` → **`/work`** |
