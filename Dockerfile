@@ -12,8 +12,9 @@ ARG DEV_GID=1000
 ARG MISE_VERSION=v2026.7.7
 ARG DEBIAN_FRONTEND=noninteractive
 ARG CACHE_ROOT=/cache
-# Optional major version (e.g. 16, 17, 18). Empty = skip client/libpq install.
-ARG POSTGRESQL_VERSION=
+# Optional major version (e.g. 16, 17, 18). Default 18 = current stable client.
+# Empty string skips install. Host bin/* also default via .mise.env.
+ARG POSTGRESQL_VERSION=18
 
 # Image/user layout + shared package/tool caches under CACHE_ROOT.
 ENV LANG=C.UTF-8 \
