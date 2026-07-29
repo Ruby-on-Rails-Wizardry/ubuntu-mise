@@ -58,19 +58,25 @@ RUN apt-get update \
         less \
         libbz2-dev \
         libffi-dev \
+        libfontconfig1 \
         libgdbm-dev \
+        libjemalloc2 \
+        libjpeg-dev \
         liblzma-dev \
         libncurses-dev \
+        libpng16-16 \
         libreadline-dev \
         libsqlite3-dev \
         libssl-dev \
         libxml2-dev \
+        libxrender1 \
         libxslt1-dev \
         libyaml-dev \
         ksh93u+m \
         lsb-release \
         neovim \
         pkg-config \
+        sqlite3 \
         sudo \
         tzdata \
         unzip \
@@ -82,6 +88,11 @@ RUN apt-get update \
 # Build-time scripts only under /docker (setup-*; runtime tools are home/bin → ~/bin).
 COPY --chmod=755 docker/ /docker/
 
+# Optional PostgreSQL client + libpq-dev (no-op when POSTGRESQL_VERSION is empty).
+# Early so PGDG packages are present before user setup / final upgrade.
+#   docker build --build-arg POSTGRESQL_VERSION=18 …
+RUN POSTGRESQL_VERSION="${POSTGRESQL_VERSION}" /docker/setup-postgresql.sh
+
 # Non-root user (name / UID / GID overridable). See docker/setup-user.sh.
 RUN USER="${USER}" DEV_UID="${DEV_UID}" DEV_GID="${DEV_GID}" /docker/setup-user.sh
 
@@ -92,9 +103,10 @@ COPY --chown=${DEV_UID}:${DEV_GID} home/ /home/${USER}/
 # Shared /cache tree + profile.d + helpers. See docker/setup-cache.sh.
 RUN USER="${USER}" CACHE_ROOT="${CACHE_ROOT}" FLAVOR=ubuntu-mise /docker/setup-cache.sh
 
-# Optional PostgreSQL client + libpq-dev (no-op when POSTGRESQL_VERSION is empty).
-#   docker build --build-arg POSTGRESQL_VERSION=18 …
-RUN POSTGRESQL_VERSION="${POSTGRESQL_VERSION}" /docker/setup-postgresql.sh
+# Refresh packages while still root (includes any PGDG index from setup-postgresql).
+# upgrade only — not dist-upgrade (avoid pulling in base-image policy shifts).
+RUN apt-get update \
+    && apt-get upgrade -y
 
 USER ${USER}
 WORKDIR /home/${USER}
