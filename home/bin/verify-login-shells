@@ -3,8 +3,8 @@
 # Intended to run *inside* the image (or via: docker run --rm IMAGE /path/to/this).
 #
 # Usage (from image build host):
-#   docker run --rm --entrypoint bash IMAGE -lc '/path'  # prefer baking or:
-#   docker run --rm -e PATH=/usr/bin:/bin IMAGE bash -lc '...'
+#   docker run --rm --entrypoint verify-login-shells IMAGE
+#   task verify   # or: ./bin/verify shells
 #
 # We strip any pre-seeded mise PATH so success means shell startup files work.
 
