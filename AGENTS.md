@@ -29,8 +29,7 @@ Two **parallel** runtimes — same `/work` + `/cache` contract:
 |--------|------------|---------|
 | First-time setup | `task setup` / `./bin/setup` | `task compose:setup` / `./bin/compose-setup` |
 | Shell | `task shell` / `./bin/shell` | `task compose:shell` / `./bin/compose-shell` |
-| One-shot | `task run -- cmd` / `./bin/run` | `task compose:run -- cmd` / `./bin/compose run --rm dev …` |
-| Rails sample | — | `task compose:app` / `./bin/compose-app` |
+| One-shot | `task run -- cmd` / `./bin/run` | `task compose:run -- cmd` / `./bin/compose run --rm ubuntu-mise …` |
 | Build only | `task build` / `./bin/build` | `task compose:build` / `./bin/compose build` |
 | Verify image | `task verify` / `./bin/verify` | (same) |
 
@@ -50,7 +49,7 @@ Two **parallel** runtimes — same `/work` + `/cache` contract:
 | Runtime CLIs | `home/bin/` (`cache-env`, `docker-entrypoint`, `verify-*`) — **not** `/usr/local/bin` |
 | Default language tool versions | `mise.toml` (node/yarn/python/task); **Ruby SSOT = Gemfile** `ruby "4.0.6"` |
 | Sample project (warm/smoke) | `Gemfile*` (includes `ruby "…"`), `package.json`/`yarn.lock`, `requirements.txt`, `scripts/smoke.sh` |
-| Realistic Rails sample | `sample_app/` git submodule → compose service `app` (`bin/compose-app`) |
+| Sibling Rails sample | Umbrella `../ubuntu-sample/` — mount with `PROJECT=…` (no compose `app` service) |
 | Host run helpers | `bin/lib.sh` |
 
 ## Verify before claiming done
@@ -72,7 +71,7 @@ task doctor
 ```
 ubuntu-mise/
 ├── Dockerfile
-├── compose.yml           # Compose path: dev + profiled app (sample_app)
+├── compose.yml           # Compose path: ubuntu-mise service only (pull_policy: never, local image)
 ├── compose.env.example
 ├── Taskfile.yml          # task recipes → bin/* (+ compose:*)
 ├── mise.toml             # default node/yarn/python/task; Ruby pin if needed for mise Gemfile parse
@@ -82,7 +81,6 @@ ubuntu-mise/
 ├── yarn.lock
 ├── requirements.txt      # sample pip deps
 ├── scripts/smoke.sh      # post-setup sample smoke test
-├── sample_app/           # submodule: realistic Rails app for compose app service
 ├── bin/                  # host CLI (no Task required)
 ├── docker/               # image build scripts
 ├── CHANGELOG.md          # Keep a Changelog
