@@ -11,7 +11,12 @@ Version tags are `vX.Y.Z`. A GitHub Release via `gh release create` is required 
 
 ### Added
 
+- `bin/warm-sample` / `task warm:sample` — warm sibling **ubuntu-sample** to verify cache warm
+
 ### Changed
+
+- Split host flow into separate commands: **`config`** (optional), **`build`**, **`warm`** — no multi-flag `bin/setup` / `compose-setup` (those scripts only print the flow)
+- Host USER/UID/GID remain deduced at **build** only; no separate “capture local values” write step
 
 ### Fixed
 

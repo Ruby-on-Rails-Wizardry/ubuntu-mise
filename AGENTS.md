@@ -11,7 +11,7 @@ It is **not** the multi-app Rails cluster (`../wf/`). No project `wf` mount is b
 | Topic | Choice |
 |-------|--------|
 | Base OS | Ubuntu 24.04 LTS |
-| User | `dev` (override `USER` / `IMAGE_USER`), UID/GID via build args |
+| User | Host `$USER` / UID / GID at **build** (override only if needed); not at run time |
 | Tool manager | mise (`MISE_DATA_DIR=/cache/mise`); Ruby prefers precompiled; compile toolchain in image |
 | Mise install timing | **Development (this image):** `mise install` at **runtime** into **`/cache`**. **Production default:** no mise (official language images). **If prod uses mise:** builder stage only; slim runtime without mise activate/install on boot. |
 | Build toolchain | `build-essential` + OpenSSL/YAML/zlib/ffi/… headers for native gems & language builds |
@@ -23,19 +23,22 @@ It is **not** the multi-app Rails cluster (`../wf/`). No project `wf` mount is b
 
 ## Host commands (prefer these)
 
-Two **parallel** runtimes — same `/work` + `/cache` contract:
+**Separate commands** (no multi-flag `setup`). Host identity is deduced at **build** — no capture step required (`task config` is optional).
 
 | Intent | docker run | Compose |
 |--------|------------|---------|
-| First-time setup | `task setup` / `./bin/setup` | `task compose:setup` / `./bin/compose-setup` |
-| Shell | `task shell` / `./bin/shell` | `task compose:shell` / `./bin/compose-shell` |
-| One-shot | `task run -- cmd` / `./bin/run` | `task compose:run -- cmd` / `./bin/compose run --rm ubuntu-mise …` |
-| Build only | `task build` / `./bin/build` | `task compose:build` / `./bin/compose build` |
-| Verify image | `task verify` / `./bin/verify` | (same) |
+| Show deduced values | `task config` / `./bin/config` | same |
+| Build image | `task build` / `./bin/build` → **`ubuntu-mise:dev`** | `task compose:build` |
+| Warm this tree | `task warm` / `./bin/warm` | same (`PROJECT` + volume `cache`) |
+| Warm sibling sample | `task warm:sample` / `./bin/warm-sample` | same |
+| Shell | `task shell` / `./bin/shell` | `task compose:shell` |
+| One-shot | `task run -- cmd` | `task compose:run -- cmd` |
+| Verify image | `task verify` / `./bin/verify` | same |
 
-- Always use **`bin/compose`** (or `task compose:*`), not raw `docker compose`, so `.env` gets host UID/GID and absolute `PROJECT_MOUNT`.
+- Always use **`bin/compose`** (or `task compose:*`), not raw `docker compose`, so `.env` gets absolute `PROJECT_MOUNT`.
 - Implement changes in **`bin/*`** first; Taskfile only delegates.
 - Do not make `task shell` call Compose — keep paths independent.
+- `bin/setup` / `compose-setup` only print the flow (no `--no-build` / `--no-warm` flags).
 
 ## Config SSOT
 
@@ -57,6 +60,7 @@ Two **parallel** runtimes — same `/work` + `/cache` contract:
 
 ```bash
 task build
+task warm            # or: task warm:sample
 task verify          # shells + caches
 task doctor
 ```
