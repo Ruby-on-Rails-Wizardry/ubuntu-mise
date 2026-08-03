@@ -13,6 +13,8 @@ Version tags are `vX.Y.Z`. A GitHub Release via `gh release create` is required 
 
 ### Changed
 
+- Stop setting / writing `COMPOSE_PROJECT_NAME` — Compose uses the directory basename (same as cluster)
+
 ### Fixed
 
 ### Security
