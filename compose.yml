@@ -54,4 +54,4 @@ volumes:
   # Named volume shared with bin/shell / bin/cache-ensure (same CACHE_VOLUME).
   # Compose creates it when missing; explicit name avoids project-prefix isolation.
   cache:
-    name: ${CACHE_VOLUME:-ubuntu-mise-cache}
+    name: ${CACHE_VOLUME:-cache}

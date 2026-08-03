@@ -13,6 +13,18 @@ Version tags are `vX.Y.Z`. A GitHub Release via `gh release create` is required 
 
 ### Changed
 
+### Fixed
+
+### Security
+
+## [0.8.0] - 2026-08-03
+
+### Added
+
+### Changed
+
+- Default Docker volume for `/cache` is named **`cache`** (was flavor-prefixed `*-mise-cache`)
+
 - Runtime tools moved from `home/bin` → **`docker/bin`** (`/docker/bin` on `PATH`, entrypoint `/docker/bin/docker-entrypoint`) so helpers are independent of the image login name
 - Shell rc files prefer `/docker/bin`; optional personal `~/bin` remains supported
 - Host helpers no longer pass `USER` / `HOME` / UID at **run** time — identity comes from the image build only (`bin/build` still passes host USER/UID as build-args)
@@ -22,6 +34,7 @@ Version tags are `vX.Y.Z`. A GitHub Release via `gh release create` is required 
 ### Security
 
 <!-- Next changes go here. Move bullets into a version section when cutting a release. -->
+
 
 ## [0.7.0] - 2026-07-30
 
@@ -164,7 +177,8 @@ Version tags are `vX.Y.Z`. A GitHub Release via `gh release create` is required 
 - Phrase shortcuts (**send it** / **ship it** / **cut a release**) in AGENTS.md and README
 - Baseline host UX: Task + `bin/*`, parallel Compose path, mise, multi-shell login, `/cache` layout
 
-[Unreleased]: https://github.com/Ruby-on-Rails-Wizardry/ubuntu-mise/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/Ruby-on-Rails-Wizardry/ubuntu-mise/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/Ruby-on-Rails-Wizardry/ubuntu-mise/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/Ruby-on-Rails-Wizardry/ubuntu-mise/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/Ruby-on-Rails-Wizardry/ubuntu-mise/compare/v0.5.2...v0.6.0
 [0.5.2]: https://github.com/Ruby-on-Rails-Wizardry/ubuntu-mise/compare/v0.5.1...v0.5.2

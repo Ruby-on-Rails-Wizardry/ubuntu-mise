@@ -276,11 +276,11 @@ task shell
 docker build -t ubuntu-mise:dev \
   --build-arg DEV_UID=$(id -u) --build-arg DEV_GID=$(id -g) .
 
-docker volume create ubuntu-mise-cache
+docker volume create cache
 
 docker run --rm -it \
   -v "$PWD":/work -w /work \
-  -v ubuntu-mise-cache:/cache \
+  -v cache:/cache \
   ubuntu-mise:dev
 ```
 
