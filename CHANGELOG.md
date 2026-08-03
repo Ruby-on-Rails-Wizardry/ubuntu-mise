@@ -13,6 +13,10 @@ Version tags are `vX.Y.Z`. A GitHub Release via `gh release create` is required 
 
 ### Changed
 
+- Runtime tools moved from `home/bin` → **`docker/bin`** (`/docker/bin` on `PATH`, entrypoint `/docker/bin/docker-entrypoint`) so helpers are independent of the image login name
+- Shell rc files prefer `/docker/bin`; optional personal `~/bin` remains supported
+- Host helpers no longer pass `USER` / `HOME` / UID at **run** time — identity comes from the image build only (`bin/build` still passes host USER/UID as build-args)
+
 ### Fixed
 
 ### Security

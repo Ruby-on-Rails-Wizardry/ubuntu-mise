@@ -41,7 +41,7 @@ ENV LANG=C.UTF-8 \
     UV_CACHE_DIR=${CACHE_ROOT}/uv \
     POETRY_CACHE_DIR=${CACHE_ROOT}/poetry \
     POETRY_VIRTUALENVS_IN_PROJECT=true \
-    PATH=/home/${USER}/bin:/home/${USER}/.local/bin:${CACHE_ROOT}/mise/shims:${PATH} \
+    PATH=/docker/bin:/home/${USER}/.local/bin:${CACHE_ROOT}/mise/shims:${PATH} \
     HOME=/home/${USER}
 
 # Base shells + compilers/headers so mise (ruby-build/python-build), native
@@ -86,7 +86,8 @@ RUN apt-get update \
         zlib1g-dev \
         zsh
 
-# Build-time scripts only under /docker (setup-*; runtime tools are home/bin → ~/bin).
+# /docker: build setup-* scripts + runtime tools under /docker/bin (on PATH).
+# Runtime tools are user-independent (not under /home/$USER/bin).
 COPY --chmod=755 docker/ /docker/
 
 # Optional PostgreSQL client + libpq-dev (no-op when POSTGRESQL_VERSION is empty).
@@ -121,12 +122,12 @@ RUN curl -fsSL https://mise.run | MISE_VERSION="${MISE_VERSION}" sh \
 # Verify home/ shell defaults + mise (rc files are seeded from home/, not rewritten).
 RUN /docker/setup-mise-shell.sh
 
-# Self-checks (on PATH via ~/bin):
+# Self-checks (on PATH via /docker/bin):
 #   docker run --rm --entrypoint verify-login-shells IMAGE
 #   docker run --rm --entrypoint verify-caches IMAGE
 #   task verify
 
-# Runtime entrypoint from home/bin (HOME set above; USER may be overridden at build).
-ENTRYPOINT ["/bin/sh", "-c", "exec \"$HOME/bin/docker-entrypoint\" \"$@\"", "--"]
+# Runtime entrypoint is user-independent (/docker/bin; USER baked at build).
+ENTRYPOINT ["/docker/bin/docker-entrypoint"]
 # Default to an interactive login shell so profile-based mise setup always runs.
 CMD ["bash", "-l"]

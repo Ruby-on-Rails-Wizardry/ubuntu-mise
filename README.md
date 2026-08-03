@@ -153,11 +153,15 @@ Repo **`home/`** is copied into `/home/$USER` at image build (`COPY --chown=$DEV
 
 | Path under `home/` | Role |
 |--------------------|------|
-| `bin/` | **Runtime** tools → `~/bin` (on `PATH`): `cache-env`, `docker-entrypoint`, `verify-*`, plus any scripts you add |
-| `.profile`, `.bashrc`, `.bash_profile`, `.kshrc`, `.zprofile`, `.zshrc`, `.config/fish/config.fish` | PATH + mise activate |
+| `.profile`, `.bashrc`, `.bash_profile`, `.kshrc`, `.zprofile`, `.zshrc`, `.config/fish/config.fish` | PATH + mise activate (`/docker/bin` first) |
 | `.gemrc`, `.bundle/config`, `.npmrc`, `.yarnrc` / `.yarnrc.yml`, `.config/pip/pip.conf`, IRB/Pry/Rails rc | Language tool globals |
 
-**`docker/`** is build-time only (`setup-user`, `setup-cache`, `setup-postgresql`, `setup-mise-shell`, layout YAML). Do not put runtime CLIs there.
+| Path under `docker/` | Role |
+|----------------------|------|
+| `setup-*.sh`, layout YAML | **Build-time** setup |
+| `bin/` | **Runtime** tools → `/docker/bin` on `PATH`: `cache-env`, `docker-entrypoint`, `verify-*` (user-independent; not under `/home/$USER`) |
+
+Build once with host `USER` / `DEV_UID` / `DEV_GID` (defaults from `task build`). **Do not** pass those at run time — the image already has the right user.
 
 Rebuild after edits so the image picks them up.
 

@@ -213,14 +213,13 @@ run_in_image() {
   local tz
   tz="$(host_timezone)"
 
+  # Do not pass USER/HOME/UID — the image bakes those at build time.
   # shellcheck disable=SC2086
   docker run --rm \
     "${tty[@]}" \
     -v "${PROJECT}:/work:cached" \
     -w /work \
     -v "${CACHE_VOLUME}:/cache" \
-    -e "USER=${IMAGE_USER}" \
-    -e "HOME=/home/${IMAGE_USER}" \
     -e "CACHE_ROOT=${CACHE_ROOT}" \
     -e "TZ=${tz}" \
     -e "TERM=${TERM:-xterm-256color}" \

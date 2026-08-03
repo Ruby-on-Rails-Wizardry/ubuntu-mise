@@ -23,6 +23,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # Identity is build-only; runtime uses the user baked into the image.
       args:
         USER: ${IMAGE_USER:-dev}
         DEV_UID: ${DEV_UID:-1000}
@@ -30,8 +31,7 @@ services:
         POSTGRESQL_VERSION: ${POSTGRESQL_VERSION:-}
     working_dir: /work
     environment:
-      USER: ${IMAGE_USER:-dev}
-      HOME: /home/${IMAGE_USER:-dev}
+      # Do not override USER/HOME — match the image build.
       CACHE_ROOT: ${CACHE_ROOT:-/cache}
       # Host zone via bin/compose → .env (override: TZ=…); images ship tzdata
       TZ: ${TZ:-UTC}
