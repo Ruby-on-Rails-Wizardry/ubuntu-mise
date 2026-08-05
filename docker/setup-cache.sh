@@ -83,8 +83,10 @@ write_profile_d() {
 export CACHE_ROOT
 export MISE_DATA_DIR="${MISE_DATA_DIR:-${CACHE_ROOT}/mise}"
 export MISE_CACHE_DIR="${MISE_CACHE_DIR:-${CACHE_ROOT}/mise-cache}"
-# Project at /work is always the user-chosen mount — auto-trust its mise.toml.
-export MISE_TRUSTED_CONFIG_PATHS="${MISE_TRUSTED_CONFIG_PATHS:-/work}"
+# Project mount (WORK_MOUNT, default /work) — auto-trust its mise.toml.
+export WORK_MOUNT="${WORK_MOUNT:-/work}"
+export WORKSPACE="${WORKSPACE:-${WORK_MOUNT}}"
+export MISE_TRUSTED_CONFIG_PATHS="${MISE_TRUSTED_CONFIG_PATHS:-${WORK_MOUNT}}"
 # Persist mise trust and other XDG state on the volume (not ephemeral home).
 export XDG_STATE_HOME="${XDG_STATE_HOME:-${CACHE_ROOT}/xdg-state}"
 export BUNDLE_PATH="${BUNDLE_PATH:-${CACHE_ROOT}/bundle}"
@@ -140,8 +142,14 @@ end
 if not set -q MISE_CACHE_DIR
   set -gx MISE_CACHE_DIR "$CACHE_ROOT/mise-cache"
 end
+if not set -q WORK_MOUNT
+  set -gx WORK_MOUNT /work
+end
+if not set -q WORKSPACE
+  set -gx WORKSPACE $WORK_MOUNT
+end
 if not set -q MISE_TRUSTED_CONFIG_PATHS
-  set -gx MISE_TRUSTED_CONFIG_PATHS /work
+  set -gx MISE_TRUSTED_CONFIG_PATHS $WORK_MOUNT
 end
 if not set -q XDG_STATE_HOME
   set -gx XDG_STATE_HOME "$CACHE_ROOT/xdg-state"

@@ -29,17 +29,19 @@ services:
         DEV_UID: ${DEV_UID:-1000}
         DEV_GID: ${DEV_GID:-1000}
         POSTGRESQL_VERSION: ${POSTGRESQL_VERSION:-}
-    working_dir: /work
+    working_dir: ${WORK_MOUNT:-/work}
     environment:
       # Do not override USER/HOME — match the image build.
       CACHE_ROOT: ${CACHE_ROOT:-/cache}
+      WORK_MOUNT: ${WORK_MOUNT:-/work}
+      WORKSPACE: ${WORK_MOUNT:-/work}
       # Host zone via bin/compose → .env (override: TZ=…); images ship tzdata
       TZ: ${TZ:-UTC}
     volumes:
       # Project bind (absolute path written by bin/compose into .env)
       - type: bind
         source: ${PROJECT_MOUNT:-.}
-        target: /work
+        target: ${WORK_MOUNT:-/work}
         bind:
           create_host_path: true
       # Shared package/tool cache (named volume; flavor-specific default)

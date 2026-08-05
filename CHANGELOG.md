@@ -11,6 +11,9 @@ Version tags are `vX.Y.Z`. A GitHub Release via `gh release create` is required 
 
 ### Added
 
+- **`WORK_MOUNT`** / **`WORKSPACE`** (default `/work`) — configurable project
+  bind path for `bin/shell`, `bin/run`, compose volumes, and image ENV defaults
+
 ### Changed
 
 ### Fixed

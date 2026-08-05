@@ -55,9 +55,13 @@ fi
 export DEV_UID="${DEV_UID:-$(id -u)}"
 export DEV_GID="${DEV_GID:-$(id -g)}"
 export IMAGE_USER="${IMAGE_USER:-${USER}}"
-# Project to mount at /work (default: caller's current directory).
+# Project to mount at WORK_MOUNT (default: caller's current directory).
 PROJECT="${PROJECT:-${PWD}}"
 CACHE_ROOT="${CACHE_ROOT:-/cache}"
+# Container path for the project bind-mount (default /work).
+WORK_MOUNT="${WORK_MOUNT:-${WORKSPACE:-/work}}"
+export WORK_MOUNT
+export WORKSPACE="${WORKSPACE:-${WORK_MOUNT}}"
 # From .mise.env by default (currently 18); empty skips client install in Dockerfile.
 : "${POSTGRESQL_VERSION:=}"
 
@@ -217,10 +221,13 @@ run_in_image() {
   # shellcheck disable=SC2086
   docker run --rm \
     "${tty[@]}" \
-    -v "${PROJECT}:/work:cached" \
-    -w /work \
+    -v "${PROJECT}:${WORK_MOUNT}:cached" \
+    -w "${WORK_MOUNT}" \
     -v "${CACHE_VOLUME}:/cache" \
     -e "CACHE_ROOT=${CACHE_ROOT}" \
+    -e "WORK_MOUNT=${WORK_MOUNT}" \
+    -e "WORKSPACE=${WORK_MOUNT}" \
+    -e "MISE_TRUSTED_CONFIG_PATHS=${WORK_MOUNT}" \
     -e "TZ=${tz}" \
     -e "TERM=${TERM:-xterm-256color}" \
     ${DOCKER_RUN_OPTS:-} \

@@ -39,6 +39,8 @@ CACHE_ROOT=${CACHE_ROOT}
 TZ=${tz}
 POSTGRESQL_VERSION=${POSTGRESQL_VERSION:-}
 PROJECT_MOUNT=${PROJECT_MOUNT}
+WORK_MOUNT=${WORK_MOUNT:-/work}
+WORKSPACE=${WORK_MOUNT}
 EOF
 # Build-args for compose build only (identity from host at build time)
 if [[ -n "${IMAGE_USER:-}" ]]; then
