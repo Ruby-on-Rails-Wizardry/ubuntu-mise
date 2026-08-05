@@ -11,6 +11,16 @@ Version tags are `vX.Y.Z`. A GitHub Release via `gh release create` is required 
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Security
+
+## [0.9.0] - 2026-08-05
+
+### Added
+
 - `bin/ensure-host-package-config` — sync host user configs from `home/` for
   **bundle, gem, yarn, npm, pip, uv, poetry, mise** (paths under `/cache`)
 - `docker/bin/verify-package-config` / `task verify -- package-config` — container
@@ -24,8 +34,8 @@ Version tags are `vX.Y.Z`. A GitHub Release via `gh release create` is required 
 ### Changed
 
 - Stop setting / writing `COMPOSE_PROJECT_NAME` — Compose uses the directory basename (same as cluster)
-- `task verify` / `bin/verify all` also runs bundle-config checks
-- Doctor warns if host `~/.bundle/config` hygiene keys are missing
+- `task verify` / `bin/verify all` also runs package-config checks
+- Doctor warns if host package configs are incomplete
 
 ### Fixed
 
