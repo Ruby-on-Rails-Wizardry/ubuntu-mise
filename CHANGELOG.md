@@ -11,12 +11,13 @@ Version tags are `vX.Y.Z`. A GitHub Release via `gh release create` is required 
 
 ### Added
 
-- `bin/ensure-host-bundle-config` / `task ensure-host-bundle-config` — ensure host
-  `~/.bundle/config` multi-project gem-cache hygiene (`CLEAN=false`, `NO_PRUNE=true`,
-  cache-all flags). Does not set `/cache` paths on the host.
+- `bin/ensure-host-bundle-config` / `task ensure-host-bundle-config` — sync host
+  `~/.bundle/config` from `home/.bundle/config` (full shared layout including
+  `BUNDLE_PATH` / `BUNDLE_CACHE_PATH` → `/cache/...`)
 - `docker/bin/verify-bundle-config` / `task verify -- bundle-config` — in-container
-  check of user `.bundle/config` + ENV vs shared `/cache` layout
-- Image `home/.bundle/config`: `BUNDLE_NO_PRUNE: true`
+  check that user `.bundle/config` persists all shared-gem settings (file SSOT;
+  compose need not inject `BUNDLE_*`)
+- Image `home/.bundle/config`: full shared-gem keys including paths + `NO_PRUNE`
 
 ### Changed
 

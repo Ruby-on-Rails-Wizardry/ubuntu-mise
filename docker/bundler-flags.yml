@@ -1,8 +1,8 @@
 ---
-# Shared Bundler *behavior* (not install paths).
-# Copy or symlink as .bundle/config in a project, or:
-#   bundle config set --local path "$BUNDLE_PATH"
-# Paths come from BUNDLE_PATH / BUNDLE_CACHE_PATH (image ENV + cache-env).
+# Project-local behavior flags (optional seed). Paths for the shared volume
+# live in the *user* config: home/.bundle/config → ~/.bundle/config in the image
+# (BUNDLE_PATH / BUNDLE_CACHE_PATH under /cache). Prefer that file so compose
+# need not pass BUNDLE_* at runtime.
 #
 # BUNDLE_PATH is a shared volume across apps — never auto-clean: one Gemfile
 # must not remove gems still needed by another project on the same cache.

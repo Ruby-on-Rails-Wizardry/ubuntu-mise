@@ -1,15 +1,17 @@
 ---
-# Global Bundler config (user home in the image). Matches docker/bundler-flags.yml + image ENV.
-# Project .bundle/config and BUNDLE_* env vars can override these.
-# Paths under /cache (Dockerfile CACHE_ROOT); shared across projects —
-# BUNDLE_CLEAN false: one Gemfile must not prune another's installed gems
-# BUNDLE_NO_PRUNE true: bundle cache must not drop sibling apps' .gem files
+# User global Bundler config (image: /home/$USER/.bundle/config).
+# Shared multi-project layout under /cache — no compose/runtime ENV required for Bundler.
+# Project-local .bundle/config and BUNDLE_* env can still override if set.
+#
+# Paths (shared volume mounted at /cache):
 BUNDLE_PATH: "/cache/bundle"
 BUNDLE_CACHE_PATH: "/cache/rubygems"
-BUNDLE_CACHE_ALL: "true"
-BUNDLE_CACHE_ALL_PLATFORMS: "true"
+# Hygiene for many apps on one volume:
 BUNDLE_CLEAN: "false"
 BUNDLE_NO_PRUNE: "true"
 BUNDLE_DISABLE_SHARED_GEMS: "true"
+# Prefer offline-friendly caching:
+BUNDLE_CACHE_ALL: "true"
+BUNDLE_CACHE_ALL_PLATFORMS: "true"
 BUNDLE_JOBS: "4"
 BUNDLE_RETRY: "3"

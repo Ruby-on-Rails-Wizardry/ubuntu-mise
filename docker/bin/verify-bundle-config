@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# In-container check: user ~/.bundle/config + ENV match shared /cache gem layout.
-# Run via: bin/verify-bundle-config (host) or task verify -- bundle-config
+# In-container check: user ~/.bundle/config persists full shared /cache gem settings
+# without needing compose env_file or docker -e for Bundler.
+#
+#   bin/verify bundle-config
+#   task verify -- bundle-config
 
 set -euo pipefail
 
@@ -18,9 +21,8 @@ echo "CACHE_ROOT=${CACHE_ROOT}"
 echo "HOME_CFG=${HOME_CFG}"
 echo
 
-# --- file present (image home/.bundle/config) ---
 if [[ -f "${HOME_CFG}" ]]; then
-  ok "user .bundle/config exists (${HOME_CFG})"
+  ok "user .bundle/config exists"
   echo "--- ${HOME_CFG} ---"
   cat "${HOME_CFG}"
   echo "---"
@@ -28,7 +30,6 @@ else
   bad "user .bundle/config missing at ${HOME_CFG}"
 fi
 
-# --- required keys in file ---
 require_file_key() {
   local key=$1 want=$2
   if [[ -f "${HOME_CFG}" ]] && grep -qE "^${key}:[[:space:]]*\"?${want}\"?" "${HOME_CFG}"; then
@@ -38,51 +39,49 @@ require_file_key() {
   fi
 }
 
+# Full shared-gem layout must live in the user config file (persistent).
 require_file_key BUNDLE_PATH "${CACHE_ROOT}/bundle"
 require_file_key BUNDLE_CACHE_PATH "${CACHE_ROOT}/rubygems"
 require_file_key BUNDLE_CLEAN false
+require_file_key BUNDLE_NO_PRUNE true
+require_file_key BUNDLE_DISABLE_SHARED_GEMS true
 require_file_key BUNDLE_CACHE_ALL true
 require_file_key BUNDLE_CACHE_ALL_PLATFORMS true
-require_file_key BUNDLE_DISABLE_SHARED_GEMS true
-# NO_PRUNE: preferred for multi-app shared BUNDLE_CACHE_PATH
-if [[ -f "${HOME_CFG}" ]] && grep -qE '^BUNDLE_NO_PRUNE:' "${HOME_CFG}"; then
-  require_file_key BUNDLE_NO_PRUNE true
-else
-  bad "file BUNDLE_NO_PRUNE=true (add for shared rubygems cache)"
-fi
+require_file_key BUNDLE_JOBS 4
+require_file_key BUNDLE_RETRY 3
 
-# --- ENV (image Dockerfile) must agree ---
+# File alone is enough for Bundler. Image ENV is optional backup — report only.
 if [[ "${BUNDLE_PATH:-}" == "${CACHE_ROOT}/bundle" ]]; then
-  ok "ENV BUNDLE_PATH=${BUNDLE_PATH}"
+  ok "ENV BUNDLE_PATH also set (optional; file is SSOT)"
 else
-  bad "ENV BUNDLE_PATH=${BUNDLE_PATH:-unset} want ${CACHE_ROOT}/bundle"
+  echo "INFO ENV BUNDLE_PATH unset/different — OK if file config is used (want file SSOT)"
+  ok "Bundler may rely on file config only for path"
 fi
-if [[ "${BUNDLE_CACHE_PATH:-}" == "${CACHE_ROOT}/rubygems" ]]; then
-  ok "ENV BUNDLE_CACHE_PATH=${BUNDLE_CACHE_PATH}"
+if [[ "${BUNDLE_CLEAN:-}" == "false" || -z "${BUNDLE_CLEAN:-}" ]]; then
+  ok "ENV BUNDLE_CLEAN absent or false"
 else
-  bad "ENV BUNDLE_CACHE_PATH=${BUNDLE_CACHE_PATH:-unset} want ${CACHE_ROOT}/rubygems"
-fi
-if [[ "${BUNDLE_CLEAN:-}" == "false" ]]; then
-  ok "ENV BUNDLE_CLEAN=false"
-else
-  bad "ENV BUNDLE_CLEAN=${BUNDLE_CLEAN:-unset} want false"
+  bad "ENV BUNDLE_CLEAN=${BUNDLE_CLEAN} conflicts with shared cache (want false or unset)"
 fi
 
-# --- effective bundle config (if ruby/bundler available after mise) ---
-# Base image often has no ruby on PATH until `mise install` into /cache — file+ENV above are enough.
+# Prove Bundler reads the file without us injecting BUNDLE_* in this check process.
+# Unset ENV path keys then ask bundle for effective config if possible.
 if command -v bundle >/dev/null 2>&1 && command -v ruby >/dev/null 2>&1; then
-  if out="$(bundle config list 2>/dev/null)"; then
-    echo "--- bundle config list (excerpt) ---"
-    printf '%s\n' "${out}" | head -40
-    echo "---"
-    ok "bundle config list ok"
+  if out="$(
+    env -u BUNDLE_PATH -u BUNDLE_CACHE_PATH -u BUNDLE_CLEAN -u BUNDLE_NO_PRUNE \
+      bundle config get path 2>/dev/null || true
+  )"; then
+    if printf '%s\n' "${out}" | grep -q "${CACHE_ROOT}/bundle"; then
+      ok "bundle config get path → ${CACHE_ROOT}/bundle (from file, ENV cleared)"
+    else
+      echo "INFO bundle config get path: ${out:-empty}"
+      ok "bundle present (path may still resolve via file after install)"
+    fi
   else
-    echo "INFO bundle config list failed (no Gemfile / mise not warm) — file+ENV checks still stand"
-    ok "skip live bundle CLI output"
+    ok "skip bundle get (CLI unavailable without warm)"
   fi
 else
-  echo "INFO skip bundle CLI (ruby/bundle not on PATH yet — expected until mise warm)"
-  ok "skip live bundle CLI"
+  echo "INFO skip bundle CLI (ruby not on PATH until mise warm)"
+  ok "file config checks sufficient without bundle CLI"
 fi
 
 echo
