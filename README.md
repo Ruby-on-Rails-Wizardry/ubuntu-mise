@@ -125,7 +125,9 @@ task compose:shell
 | `task setup` | `bin/setup` | Prints the split-command flow only |
 | `task cache:ensure` | `bin/cache-ensure` | Create Docker volume `cache` |
 | `task cache:reset -- -y` | `CONFIRM=1 bin/cache-reset` | Delete volume |
-| `task verify` | `bin/verify` | Login shells + `/cache` self-checks |
+| `task verify` | `bin/verify` | Login shells + `/cache` + package-config self-checks |
+| `task ensure-host-package-config` | `bin/ensure-host-package-config` | Sync host user configs → `/cache` paths |
+| Runtime ENV not needed | [docs/runtime-env-not-required.md](docs/runtime-env-not-required.md) / [.yml](docs/runtime-env-not-required.yml) | Compose need not inject BUNDLE_*/YARN_*/… |
 | `task doctor` | `bin/doctor` | Host/Docker sanity |
 
 ### Compose path

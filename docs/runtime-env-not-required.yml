@@ -1,0 +1,231 @@
+# Environment variables that do NOT need to be set at container runtime
+# (docker run -e, compose environment/env_file) for the default ubuntu-mise:dev
+# layout. Paths and package-manager behavior are persisted via image ENV (build),
+# /etc/profile.d, and user config files under home/ → $HOME.
+#
+# Schema:
+#   variables[].name       — env var
+#   variables[].category   — tool area
+#   variables[].covered_by — where the setting lives instead of runtime ENV
+#   variables[].notes      — optional
+
+meta:
+  title: Runtime ENV not required (default /cache layout)
+  image: ubuntu-mise:dev
+  cache_root_default: /cache
+  still_required_at_runtime: []
+  # Optional overrides (only if you change the layout):
+  optional_overrides:
+    - CACHE_ROOT   # if not /cache, user configs + image paths may need a rebuild
+    - IMAGE        # host compose only
+    - TZ
+    - POSTGRESQL_VERSION  # host compose/db parity, not package caches
+
+variables:
+  # --- Bundler / Ruby ---
+  - name: BUNDLE_PATH
+    category: bundler
+    covered_by:
+      - home/.bundle/config (BUNDLE_PATH)
+      - Dockerfile ENV (backup)
+      - /etc/profile.d/zz-cache-env.sh (login shells)
+    notes: Install path for gems; shared volume /cache/bundle
+
+  - name: BUNDLE_CACHE_PATH
+    category: bundler
+    covered_by:
+      - home/.bundle/config (BUNDLE_CACHE_PATH)
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+    notes: .gem cache under /cache/rubygems
+
+  - name: BUNDLE_CLEAN
+    category: bundler
+    covered_by:
+      - home/.bundle/config
+      - Dockerfile ENV
+    notes: Must stay false for multi-project shared BUNDLE_PATH
+
+  - name: BUNDLE_NO_PRUNE
+    category: bundler
+    covered_by:
+      - home/.bundle/config
+      - Dockerfile ENV
+    notes: bundle cache must not drop sibling apps' gems
+
+  - name: BUNDLE_CACHE_ALL
+    category: bundler
+    covered_by:
+      - home/.bundle/config
+    notes: Behavior flag; no path
+
+  - name: BUNDLE_CACHE_ALL_PLATFORMS
+    category: bundler
+    covered_by:
+      - home/.bundle/config
+    notes: Behavior flag; no path
+
+  - name: BUNDLE_DISABLE_SHARED_GEMS
+    category: bundler
+    covered_by:
+      - home/.bundle/config
+    notes: Isolate from system gem dir; still share BUNDLE_PATH volume
+
+  - name: BUNDLE_JOBS
+    category: bundler
+    covered_by:
+      - home/.bundle/config
+
+  - name: BUNDLE_RETRY
+    category: bundler
+    covered_by:
+      - home/.bundle/config
+
+  # --- RubyGems CLI (gem install) ---
+  - name: GEM_HOME
+    category: rubygems
+    covered_by:
+      - home/.gemrc (gemhome: /cache/gem)
+    notes: Prefer .gemrc; app gems should use Bundler
+
+  - name: GEM_PATH
+    category: rubygems
+    covered_by:
+      - home/.gemrc (gempath)
+    notes: Optional; gemrc gempath covers typical gem CLI use
+
+  # --- mise ---
+  - name: MISE_DATA_DIR
+    category: mise
+    covered_by:
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+    notes: Tool installs under /cache/mise; not fully expressible in mise config.toml alone
+
+  - name: MISE_CACHE_DIR
+    category: mise
+    covered_by:
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+    notes: Downloads under /cache/mise-cache
+
+  - name: MISE_CONFIG_DIR
+    category: mise
+    covered_by:
+      - Dockerfile ENV
+      - home/.config/mise/config.toml (settings live here)
+    notes: Config dir path is image default under $HOME/.config/mise
+
+  - name: MISE_RUBY_COMPILE
+    category: mise
+    covered_by:
+      - Dockerfile ENV
+      - home/.config/mise/config.toml [settings.ruby] compile = false
+    notes: Prefer precompiled Ruby
+
+  - name: MISE_TRUSTED_CONFIG_PATHS
+    category: mise
+    covered_by:
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+    notes: Default /work for project mise.toml
+
+  - name: XDG_STATE_HOME
+    category: mise
+    covered_by:
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+    notes: /cache/xdg-state so trust state persists on the volume
+
+  # --- Yarn classic + Berry ---
+  - name: YARN_CACHE_FOLDER
+    category: yarn
+    covered_by:
+      - home/.yarnrc (--cache-folder)
+      - home/.yarnrc.yml (cacheFolder)
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+    notes: /cache/yarn-cache
+
+  - name: YARN_OFFLINE_MIRROR
+    category: yarn
+    covered_by:
+      - home/.yarnrc (yarn-offline-mirror)
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+    notes: Classic Yarn 1 only; /cache/yarn
+
+  - name: YARN_GLOBAL_FOLDER
+    category: yarn
+    covered_by:
+      - home/.yarnrc.yml (globalFolder)
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+    notes: Berry; /cache/yarn-global
+
+  - name: YARN_ENABLE_GLOBAL_CACHE
+    category: yarn
+    covered_by:
+      - home/.yarnrc.yml (enableGlobalCache)
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+
+  # --- npm / node ---
+  - name: NPM_CONFIG_CACHE
+    category: npm
+    covered_by:
+      - home/.npmrc (cache=)
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+    notes: /cache/npm
+
+  - name: npm_config_cache
+    category: npm
+    covered_by:
+      - home/.npmrc
+      - Dockerfile ENV
+    notes: Lowercase alias; same as NPM_CONFIG_CACHE
+
+  # --- Python ---
+  - name: PIP_CACHE_DIR
+    category: pip
+    covered_by:
+      - home/.config/pip/pip.conf (cache-dir)
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+    notes: /cache/pip
+
+  - name: UV_CACHE_DIR
+    category: uv
+    covered_by:
+      - home/.config/uv/uv.toml (cache-dir)
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+    notes: /cache/uv
+
+  - name: POETRY_CACHE_DIR
+    category: poetry
+    covered_by:
+      - home/.config/pypoetry/config.toml (cache-dir)
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+    notes: /cache/poetry
+
+  - name: POETRY_VIRTUALENVS_IN_PROJECT
+    category: poetry
+    covered_by:
+      - home/.config/pypoetry/config.toml ([virtualenvs] in-project)
+      - Dockerfile ENV
+    notes: Keep venvs in project, not on shared volume as the sole store
+
+  # --- Layout root (only if you keep default /cache) ---
+  - name: CACHE_ROOT
+    category: layout
+    covered_by:
+      - Dockerfile ENV
+      - /etc/profile.d/zz-cache-env.sh
+      - paths hardcoded as /cache in home/* configs
+    notes: >
+      Default is /cache. If you change CACHE_ROOT at runtime, user config files
+      still say /cache/... — rebuild image or override configs; do not rely on
+      CACHE_ROOT alone to rewrite file-based paths.

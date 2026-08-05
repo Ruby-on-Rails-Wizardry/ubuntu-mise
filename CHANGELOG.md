@@ -18,6 +18,8 @@ Version tags are `vX.Y.Z`. A GitHub Release via `gh release create` is required 
 - Image `home/`: `.bundle/config`, `.gemrc`, `.yarnrc`/`.yarnrc.yml`, `.npmrc`,
   pip/uv/poetry/mise configs all point at `/cache/...`
 - Cache subdir `gem/` for raw `gem install` (gemhome)
+- `docs/runtime-env-not-required.md` + `.yml` — ENV vars not required at runtime
+  (covered by user configs + image)
 
 ### Changed
 
