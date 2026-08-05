@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-_CACHE_SUBDIRS=(mise mise-cache bundle rubygems yarn yarn-cache yarn-global npm pip uv poetry)
+_CACHE_SUBDIRS=(mise mise-cache bundle rubygems gem yarn yarn-cache yarn-global npm pip uv poetry xdg-state)
 
 _cache_env_detect_share() {
   local d

@@ -86,10 +86,11 @@ tasks:
     cmds:
       - ./bin/verify {{.CLI_ARGS}}
 
-  ensure-host-bundle-config:
-    desc: Ensure host ~/.bundle/config multi-project gem-cache hygiene keys
+  ensure-host-package-config:
+    desc: Sync host user configs (bundle/gem/yarn/npm/pip/uv/poetry/mise) → /cache
+    aliases: [ensure-host-bundle-config]
     cmds:
-      - ./bin/ensure-host-bundle-config {{.CLI_ARGS}}
+      - ./bin/ensure-host-package-config {{.CLI_ARGS}}
 
   doctor:
     desc: Host / Docker / image sanity checks

@@ -27,7 +27,7 @@ case "${what}" in
   all)
     run_verify "${DOCKER_BIN}/verify-login-shells"
     run_verify "${DOCKER_BIN}/verify-caches"
-    run_verify "${DOCKER_BIN}/verify-bundle-config"
+    run_verify "${DOCKER_BIN}/verify-package-config"
     ;;
   shells|login|login-shells)
     run_verify "${DOCKER_BIN}/verify-login-shells"
@@ -35,13 +35,18 @@ case "${what}" in
   caches|cache)
     run_verify "${DOCKER_BIN}/verify-caches"
     ;;
+  package-config|packages|package)
+    run_verify "${DOCKER_BIN}/verify-package-config"
+    ;;
   bundle-config|bundle|bundler)
-    run_verify "${DOCKER_BIN}/verify-bundle-config"
+    # back-compat alias
+    run_verify "${DOCKER_BIN}/verify-package-config"
     ;;
   *)
-    echo "Usage: $0 [all|shells|caches|bundle-config]" >&2
+    echo "Usage: $0 [all|shells|caches|package-config|bundle-config]" >&2
     exit 2
     ;;
 esac
+
 
 log "verify ok (${what})"

@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+# Sync host user package-manager configs from ubuntu-mise home/ templates so
+# caches point at /cache/... without compose/runtime ENV.
+#
+# Templates (repo → host $HOME):
+#   .bundle/config          Bundler path + hygiene
+#   .gemrc                  gem CLI gemhome
+#   .yarnrc / .yarnrc.yml   Yarn classic + Berry
+#   .npmrc                  npm cache
+#   .config/pip/pip.conf    pip cache-dir
+#   .config/uv/uv.toml      uv cache-dir
+#   .config/pypoetry/config.toml  poetry cache + in-project venvs
+#   .config/mise/config.toml      mise settings (data dirs via image ENV/profile.d)
+#
+# Usage:
+#   bin/ensure-host-package-config
+#   bin/ensure-host-package-config --check
+#   task ensure-host-package-config
+#
+# Note: /cache paths are for containers with volume cache → /cache.
+set -euo pipefail
+# shellcheck source=lib.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
+
+CHECK_ONLY=0
+for arg in "$@"; do
+  case "$arg" in
+    --check) CHECK_ONLY=1 ;;
+    -h|--help)
+      awk 'NR==1 { next } /^#/ { sub(/^# ?/, ""); print; next } { exit }' "$0"
+      exit 0
+      ;;
+    *)
+      die "unknown option: $arg"
+      ;;
+  esac
+done
+
+# relative to home/ and to $HOME
+FILES=(
+  .bundle/config
+  .gemrc
+  .yarnrc
+  .yarnrc.yml
+  .npmrc
+  .config/pip/pip.conf
+  .config/uv/uv.toml
+  .config/pypoetry/config.toml
+  .config/mise/config.toml
+)
+
+# Snippets that must appear in each file (path / cache hygiene).
+declare -A MUST_CONTAIN=(
+  [.bundle/config]="/cache/bundle"
+  [.gemrc]="/cache/gem"
+  [.yarnrc]="/cache/yarn"
+  [.yarnrc.yml]="/cache/yarn-cache"
+  [.npmrc]="/cache/npm"
+  [.config/pip/pip.conf]="/cache/pip"
+  [.config/uv/uv.toml]="/cache/uv"
+  [.config/pypoetry/config.toml]="/cache/poetry"
+  [.config/mise/config.toml]="compile = false"
+)
+
+fail=0
+
+check_one() {
+  local rel=$1
+  local dest="${HOME}/${rel}"
+  local needle="${MUST_CONTAIN[$rel]:-}"
+  if [[ ! -f "${dest}" ]]; then
+    printf 'missing %s\n' "${dest}"
+    return 1
+  fi
+  if [[ -n "${needle}" ]] && ! grep -qF "${needle}" "${dest}"; then
+    printf 'wrong/missing content in %s (want substring %s)\n' "${dest}" "${needle}"
+    return 1
+  fi
+  return 0
+}
+
+if [[ "${CHECK_ONLY}" -eq 1 ]]; then
+  for rel in "${FILES[@]}"; do
+    if check_one "${rel}"; then
+      log "OK  ~/${rel}"
+    else
+      log "FAIL ~/${rel}"
+      fail=1
+    fi
+  done
+  # Also keep bundle-only check compatible
+  if [[ "${fail}" -eq 0 ]]; then
+    log "host package configs: OK"
+    exit 0
+  fi
+  log "host package configs incomplete — run: bin/ensure-host-package-config"
+  exit 1
+fi
+
+for rel in "${FILES[@]}"; do
+  src="${ROOT}/home/${rel}"
+  dest="${HOME}/${rel}"
+  [[ -f "${src}" ]] || die "missing template ${src}"
+  mkdir -p "$(dirname "${dest}")"
+  if [[ -f "${dest}" ]] && cmp -s "${src}" "${dest}"; then
+    log "unchanged ~/${rel}"
+    continue
+  fi
+  # For .bundle/config merge BUNDLE_* keys if file exists and differs significantly —
+  # full copy from template is intentional for cache path SSOT.
+  cp "${src}" "${dest}"
+  log "wrote ~/${rel} from home/${rel}"
+done
+
+for rel in "${FILES[@]}"; do
+  check_one "${rel}" || fail=1
+done
+if [[ "${fail}" -eq 0 ]]; then
+  log "host package configs: ensured under ${HOME}"
+else
+  die "host package configs still incomplete after write"
+fi

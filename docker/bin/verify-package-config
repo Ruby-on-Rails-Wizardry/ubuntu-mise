@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# In-container check: user config files persist /cache paths for package managers.
+# Compose need not pass BUNDLE_*/YARN_*/NPM_*/PIP_*/… for these tools.
+#
+#   bin/verify package-config
+#   task verify -- package-config
+
+set -euo pipefail
+
+CACHE_ROOT="${CACHE_ROOT:-/cache}"
+pass=0
+fail=0
+
+ok() { printf 'OK  %s\n' "$*"; pass=$((pass + 1)); }
+bad() { printf 'FAIL %s\n' "$*"; fail=$((fail + 1)); }
+
+require_file_substr() {
+  local path=$1 needle=$2 label=$3
+  if [[ -f "${path}" ]] && grep -qF "${needle}" "${path}"; then
+    ok "${label}: ${path} has ${needle}"
+  else
+    bad "${label}: ${path} missing or lacks ${needle}"
+  fi
+}
+
+echo "=== verify-package-config ==="
+echo "HOME=${HOME} CACHE_ROOT=${CACHE_ROOT}"
+echo
+
+# Bundler
+require_file_substr "${HOME}/.bundle/config" "${CACHE_ROOT}/bundle" "bundler path"
+require_file_substr "${HOME}/.bundle/config" "${CACHE_ROOT}/rubygems" "bundler cache_path"
+require_file_substr "${HOME}/.bundle/config" 'BUNDLE_CLEAN: "false"' "bundler clean"
+require_file_substr "${HOME}/.bundle/config" 'BUNDLE_NO_PRUNE: "true"' "bundler no_prune"
+require_file_substr "${HOME}/.bundle/config" 'BUNDLE_DISABLE_SHARED_GEMS: "true"' "bundler disable_shared_gems"
+
+# RubyGems CLI
+require_file_substr "${HOME}/.gemrc" "${CACHE_ROOT}/gem" "gemrc gemhome"
+
+# Yarn classic + Berry
+require_file_substr "${HOME}/.yarnrc" "${CACHE_ROOT}/yarn" "yarn classic offline-mirror"
+require_file_substr "${HOME}/.yarnrc" "${CACHE_ROOT}/yarn-cache" "yarn classic cache-folder"
+require_file_substr "${HOME}/.yarnrc.yml" "${CACHE_ROOT}/yarn-global" "yarn berry globalFolder"
+require_file_substr "${HOME}/.yarnrc.yml" "${CACHE_ROOT}/yarn-cache" "yarn berry cacheFolder"
+require_file_substr "${HOME}/.yarnrc.yml" "enableGlobalCache: true" "yarn berry enableGlobalCache"
+
+# npm
+require_file_substr "${HOME}/.npmrc" "cache=${CACHE_ROOT}/npm" "npm cache"
+
+# Python
+require_file_substr "${HOME}/.config/pip/pip.conf" "${CACHE_ROOT}/pip" "pip cache-dir"
+require_file_substr "${HOME}/.config/uv/uv.toml" "${CACHE_ROOT}/uv" "uv cache-dir"
+require_file_substr "${HOME}/.config/pypoetry/config.toml" "${CACHE_ROOT}/poetry" "poetry cache-dir"
+require_file_substr "${HOME}/.config/pypoetry/config.toml" "in-project = true" "poetry in-project venvs"
+
+# mise (settings file; data dirs via image ENV/profile.d)
+require_file_substr "${HOME}/.config/mise/config.toml" "compile = false" "mise ruby.compile"
+
+# Cache dirs (create if volume is older than layout — entrypoint also ensures these)
+for d in bundle rubygems gem yarn yarn-cache yarn-global npm pip uv poetry mise mise-cache xdg-state; do
+  mkdir -p "${CACHE_ROOT}/${d}" 2>/dev/null || true
+  if [[ -d "${CACHE_ROOT}/${d}" && -w "${CACHE_ROOT}/${d}" ]]; then
+    ok "dir ${CACHE_ROOT}/${d}"
+  else
+    bad "dir ${CACHE_ROOT}/${d} missing or not writable"
+  fi
+done
+
+echo
+echo "passed=${pass} failed=${fail}"
+[[ "${fail}" -eq 0 ]]

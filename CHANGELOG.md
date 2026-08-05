@@ -11,13 +11,13 @@ Version tags are `vX.Y.Z`. A GitHub Release via `gh release create` is required 
 
 ### Added
 
-- `bin/ensure-host-bundle-config` / `task ensure-host-bundle-config` — sync host
-  `~/.bundle/config` from `home/.bundle/config` (full shared layout including
-  `BUNDLE_PATH` / `BUNDLE_CACHE_PATH` → `/cache/...`)
-- `docker/bin/verify-bundle-config` / `task verify -- bundle-config` — in-container
-  check that user `.bundle/config` persists all shared-gem settings (file SSOT;
-  compose need not inject `BUNDLE_*`)
-- Image `home/.bundle/config`: full shared-gem keys including paths + `NO_PRUNE`
+- `bin/ensure-host-package-config` — sync host user configs from `home/` for
+  **bundle, gem, yarn, npm, pip, uv, poetry, mise** (paths under `/cache`)
+- `docker/bin/verify-package-config` / `task verify -- package-config` — container
+  checks those files; compose need not inject tool cache ENV
+- Image `home/`: `.bundle/config`, `.gemrc`, `.yarnrc`/`.yarnrc.yml`, `.npmrc`,
+  pip/uv/poetry/mise configs all point at `/cache/...`
+- Cache subdir `gem/` for raw `gem install` (gemhome)
 
 ### Changed
 

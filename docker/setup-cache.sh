@@ -21,6 +21,7 @@ SUBDIRS=(
   mise-cache
   bundle
   rubygems
+  gem
   yarn
   yarn-cache
   yarn-global

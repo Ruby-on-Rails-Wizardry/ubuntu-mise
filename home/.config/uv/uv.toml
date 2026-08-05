@@ -1,0 +1,4 @@
+# User uv config — cache on shared volume (no compose UV_CACHE_DIR required).
+# https://docs.astral.sh/uv/configuration/files/
+
+cache-dir = "/cache/uv"

@@ -1,0 +1,9 @@
+# User mise config (image: ~/.config/mise/config.toml).
+# Install root / download cache: MISE_DATA_DIR + MISE_CACHE_DIR under /cache
+# (baked into image ENV and /etc/profile.d — not required from compose).
+
+[settings]
+idiomatic_version_file_enable_tools = ["ruby"]
+
+[settings.ruby]
+compile = false

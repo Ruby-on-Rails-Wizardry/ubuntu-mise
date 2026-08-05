@@ -68,18 +68,21 @@ else
   printf 'WARN volume %s missing — run: bin/cache-ensure  or  task cache:ensure\n' "${CACHE_VOLUME}"
 fi
 
-# Host ~/.bundle/config: multi-project cache hygiene (behavior keys only)
-host_cfg="${HOME}/.bundle/config"
-if [[ -x "${ROOT}/bin/ensure-host-bundle-config" ]]; then
-  if "${ROOT}/bin/ensure-host-bundle-config" --check >/dev/null 2>&1; then
-    printf 'OK   host ~/.bundle/config shared-cache hygiene\n'
+# Host user package configs (bundle/gem/yarn/npm/pip/uv/poetry/mise → /cache)
+if [[ -x "${ROOT}/bin/ensure-host-package-config" ]]; then
+  if "${ROOT}/bin/ensure-host-package-config" --check >/dev/null 2>&1; then
+    printf 'OK   host package configs (bundle/gem/yarn/npm/pip/uv/poetry/mise)\n'
   else
-    printf 'WARN host ~/.bundle/config incomplete — run: bin/ensure-host-bundle-config\n'
+    printf 'WARN host package configs incomplete — run: bin/ensure-host-package-config\n'
   fi
-elif [[ -f "${host_cfg}" ]] && grep -qE '^BUNDLE_CLEAN:[[:space:]]*"?false"?' "${host_cfg}"; then
-  printf 'OK   host ~/.bundle/config has BUNDLE_CLEAN=false\n'
+elif [[ -x "${ROOT}/bin/ensure-host-bundle-config" ]]; then
+  if "${ROOT}/bin/ensure-host-bundle-config" --check >/dev/null 2>&1; then
+    printf 'OK   host ~/.bundle/config (legacy ensure)\n'
+  else
+    printf 'WARN host package configs incomplete — run: bin/ensure-host-package-config\n'
+  fi
 else
-  printf 'WARN host ~/.bundle/config missing hygiene keys — run: bin/ensure-host-bundle-config\n'
+  printf 'WARN no ensure-host-package-config script\n'
 fi
 
 echo

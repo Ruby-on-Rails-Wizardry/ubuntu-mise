@@ -1,7 +1,11 @@
 ---
-# Global RubyGems defaults for the image user.
-# Install paths for apps use /cache via BUNDLE_* / gem env; this only tunes gem(1).
+# Global RubyGems (gem CLI) for the image user.
+# App gems go through Bundler → ~/.bundle/config (BUNDLE_PATH=/cache/bundle).
+# Raw `gem install` uses gemhome under /cache so installs are not lost on rebuild.
 gem: --no-document
+gemhome: /cache/gem
+gempath:
+  - /cache/gem
 :benchmark: false
 :verbose: true
 :update_sources: true

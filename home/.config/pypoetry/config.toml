@@ -1,0 +1,6 @@
+# User Poetry config — package cache on shared volume; venvs in-project.
+
+cache-dir = "/cache/poetry"
+
+[virtualenvs]
+in-project = true

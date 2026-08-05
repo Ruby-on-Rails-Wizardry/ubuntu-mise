@@ -101,7 +101,7 @@ echo "USER=$(id -un) uid=$(id -u)"
 
 check "CACHE_ROOT exists" dir_writable "${CACHE_ROOT}"
 
-for d in mise mise-cache bundle rubygems yarn yarn-cache yarn-global npm pip uv poetry; do
+for d in mise mise-cache bundle rubygems gem yarn yarn-cache yarn-global npm pip uv poetry xdg-state; do
   check "dir ${CACHE_ROOT}/${d}" dir_writable "${CACHE_ROOT}/${d}"
 done
 
