@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# In-container check: user ~/.bundle/config + ENV match shared /cache gem layout.
+# Run via: bin/verify-bundle-config (host) or task verify -- bundle-config
+
+set -euo pipefail
+
+CACHE_ROOT="${CACHE_ROOT:-/cache}"
+HOME_CFG="${HOME}/.bundle/config"
+pass=0
+fail=0
+
+ok() { printf 'OK  %s\n' "$*"; pass=$((pass + 1)); }
+bad() { printf 'FAIL %s\n' "$*"; fail=$((fail + 1)); }
+
+echo "=== verify-bundle-config ==="
+echo "HOME=${HOME}"
+echo "CACHE_ROOT=${CACHE_ROOT}"
+echo "HOME_CFG=${HOME_CFG}"
+echo
+
+# --- file present (image home/.bundle/config) ---
+if [[ -f "${HOME_CFG}" ]]; then
+  ok "user .bundle/config exists (${HOME_CFG})"
+  echo "--- ${HOME_CFG} ---"
+  cat "${HOME_CFG}"
+  echo "---"
+else
+  bad "user .bundle/config missing at ${HOME_CFG}"
+fi
+
+# --- required keys in file ---
+require_file_key() {
+  local key=$1 want=$2
+  if [[ -f "${HOME_CFG}" ]] && grep -qE "^${key}:[[:space:]]*\"?${want}\"?" "${HOME_CFG}"; then
+    ok "file ${key}=${want}"
+  else
+    bad "file ${key} want ${want}"
+  fi
+}
+
+require_file_key BUNDLE_PATH "${CACHE_ROOT}/bundle"
+require_file_key BUNDLE_CACHE_PATH "${CACHE_ROOT}/rubygems"
+require_file_key BUNDLE_CLEAN false
+require_file_key BUNDLE_CACHE_ALL true
+require_file_key BUNDLE_CACHE_ALL_PLATFORMS true
+require_file_key BUNDLE_DISABLE_SHARED_GEMS true
+# NO_PRUNE: preferred for multi-app shared BUNDLE_CACHE_PATH
+if [[ -f "${HOME_CFG}" ]] && grep -qE '^BUNDLE_NO_PRUNE:' "${HOME_CFG}"; then
+  require_file_key BUNDLE_NO_PRUNE true
+else
+  bad "file BUNDLE_NO_PRUNE=true (add for shared rubygems cache)"
+fi
+
+# --- ENV (image Dockerfile) must agree ---
+if [[ "${BUNDLE_PATH:-}" == "${CACHE_ROOT}/bundle" ]]; then
+  ok "ENV BUNDLE_PATH=${BUNDLE_PATH}"
+else
+  bad "ENV BUNDLE_PATH=${BUNDLE_PATH:-unset} want ${CACHE_ROOT}/bundle"
+fi
+if [[ "${BUNDLE_CACHE_PATH:-}" == "${CACHE_ROOT}/rubygems" ]]; then
+  ok "ENV BUNDLE_CACHE_PATH=${BUNDLE_CACHE_PATH}"
+else
+  bad "ENV BUNDLE_CACHE_PATH=${BUNDLE_CACHE_PATH:-unset} want ${CACHE_ROOT}/rubygems"
+fi
+if [[ "${BUNDLE_CLEAN:-}" == "false" ]]; then
+  ok "ENV BUNDLE_CLEAN=false"
+else
+  bad "ENV BUNDLE_CLEAN=${BUNDLE_CLEAN:-unset} want false"
+fi
+
+# --- effective bundle config (if ruby/bundler available after mise) ---
+# Base image often has no ruby on PATH until `mise install` into /cache — file+ENV above are enough.
+if command -v bundle >/dev/null 2>&1 && command -v ruby >/dev/null 2>&1; then
+  if out="$(bundle config list 2>/dev/null)"; then
+    echo "--- bundle config list (excerpt) ---"
+    printf '%s\n' "${out}" | head -40
+    echo "---"
+    ok "bundle config list ok"
+  else
+    echo "INFO bundle config list failed (no Gemfile / mise not warm) — file+ENV checks still stand"
+    ok "skip live bundle CLI output"
+  fi
+else
+  echo "INFO skip bundle CLI (ruby/bundle not on PATH yet — expected until mise warm)"
+  ok "skip live bundle CLI"
+fi
+
+echo
+echo "passed=${pass} failed=${fail}"
+[[ "${fail}" -eq 0 ]]

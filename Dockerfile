@@ -31,6 +31,7 @@ ENV LANG=C.UTF-8 \
     BUNDLE_PATH=${CACHE_ROOT}/bundle \
     BUNDLE_CACHE_PATH=${CACHE_ROOT}/rubygems \
     BUNDLE_CLEAN=false \
+    BUNDLE_NO_PRUNE=true \
     YARN_CACHE_FOLDER=${CACHE_ROOT}/yarn-cache \
     YARN_OFFLINE_MIRROR=${CACHE_ROOT}/yarn \
     YARN_GLOBAL_FOLDER=${CACHE_ROOT}/yarn-global \

@@ -82,9 +82,14 @@ tasks:
       - ./bin/cache-reset {{.CLI_ARGS}}
 
   verify:
-    desc: "Image self-checks (task verify -- shells|caches|all)"
+    desc: "Image self-checks (task verify -- shells|caches|bundle-config|all)"
     cmds:
       - ./bin/verify {{.CLI_ARGS}}
+
+  ensure-host-bundle-config:
+    desc: Ensure host ~/.bundle/config multi-project gem-cache hygiene keys
+    cmds:
+      - ./bin/ensure-host-bundle-config {{.CLI_ARGS}}
 
   doctor:
     desc: Host / Docker / image sanity checks

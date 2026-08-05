@@ -17,10 +17,12 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 Host flow (separate commands — no setup flags):
 
   bin/config          Show IMAGE, CACHE_VOLUME, USER/UID (deduced; optional)
+  bin/ensure-host-bundle-config  Host ~/.bundle/config multi-project gem hygiene
   bin/build           Build ${IMAGE:-ubuntu-mise:dev} (host identity as build-args)
   bin/warm            Warm volume cache for PROJECT (default: this directory)
   bin/warm-sample     Warm sibling sample app (${SAMPLE_APP:-../ubuntu-sample})
   bin/shell           Interactive shell
+  bin/verify          Image checks (all|shells|caches|bundle-config)
 
 Compose parallel: bin/compose build, PROJECT=… bin/warm, bin/compose-shell
 EOF
@@ -35,10 +37,12 @@ cat <<EOF
 ${FLAVOR}: use separate commands (no flags on setup):
 
   bin/config          # optional — values are deduced at build time
+  bin/ensure-host-bundle-config  # host ~/.bundle/config hygiene
   bin/build           # → ${IMAGE}
   bin/warm            # this tree as /work
   bin/warm-sample     # optional: verify warm on sibling sample
   bin/shell
+  bin/verify -- bundle-config  # in-container .bundle/config check
 
 EOF
 print_config

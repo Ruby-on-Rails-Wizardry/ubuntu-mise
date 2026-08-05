@@ -11,9 +11,18 @@ Version tags are `vX.Y.Z`. A GitHub Release via `gh release create` is required 
 
 ### Added
 
+- `bin/ensure-host-bundle-config` / `task ensure-host-bundle-config` — ensure host
+  `~/.bundle/config` multi-project gem-cache hygiene (`CLEAN=false`, `NO_PRUNE=true`,
+  cache-all flags). Does not set `/cache` paths on the host.
+- `docker/bin/verify-bundle-config` / `task verify -- bundle-config` — in-container
+  check of user `.bundle/config` + ENV vs shared `/cache` layout
+- Image `home/.bundle/config`: `BUNDLE_NO_PRUNE: true`
+
 ### Changed
 
 - Stop setting / writing `COMPOSE_PROJECT_NAME` — Compose uses the directory basename (same as cluster)
+- `task verify` / `bin/verify all` also runs bundle-config checks
+- Doctor warns if host `~/.bundle/config` hygiene keys are missing
 
 ### Fixed
 

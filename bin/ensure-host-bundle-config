@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+# Ensure the host user's ~/.bundle/config has multi-project gem-cache hygiene.
+#
+# Sets behavior flags only (safe on the host without a /cache mount):
+#   BUNDLE_CLEAN=false
+#   BUNDLE_NO_PRUNE=true
+#   BUNDLE_CACHE_ALL=true
+#   BUNDLE_CACHE_ALL_PLATFORMS=true
+#   BUNDLE_DISABLE_SHARED_GEMS=true
+#   BUNDLE_JOBS / BUNDLE_RETRY
+#
+# Does NOT set BUNDLE_PATH=/cache/... on the host (that path is for containers).
+# In-image user config with /cache paths is home/.bundle/config (image build).
+#
+# Usage:
+#   bin/ensure-host-bundle-config
+#   bin/ensure-host-bundle-config --check   # report only; exit 1 if missing keys
+#   task ensure-host-bundle-config
+set -euo pipefail
+# shellcheck source=lib.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
+
+CHECK_ONLY=0
+for arg in "$@"; do
+  case "$arg" in
+    --check) CHECK_ONLY=1 ;;
+    -h|--help)
+      awk 'NR==1 { next } /^#/ { sub(/^# ?/, ""); print; next } { exit }' "$0"
+      exit 0
+      ;;
+    *)
+      die "unknown option: $arg"
+      ;;
+  esac
+done
+
+# Bundler global config (not project .bundle/config)
+CFG="${HOME}/.bundle/config"
+
+# Keys required for shared gem-cache hygiene (behavior only).
+declare -A WANT=(
+  [BUNDLE_CLEAN]="false"
+  [BUNDLE_NO_PRUNE]="true"
+  [BUNDLE_CACHE_ALL]="true"
+  [BUNDLE_CACHE_ALL_PLATFORMS]="true"
+  [BUNDLE_DISABLE_SHARED_GEMS]="true"
+  [BUNDLE_JOBS]="4"
+  [BUNDLE_RETRY]="3"
+)
+
+check_keys() {
+  local missing=0 key val
+  [[ -f "${CFG}" ]] || { printf 'missing %s\n' "${CFG}"; return 1; }
+  for key in "${!WANT[@]}"; do
+    val="${WANT[$key]}"
+    if ! grep -qE "^${key}:[[:space:]]*\"?${val}\"?" "${CFG}"; then
+      printf 'missing or wrong: %s (want %s)\n' "${key}" "${val}"
+      missing=1
+    fi
+  done
+  return "${missing}"
+}
+
+if [[ "${CHECK_ONLY}" -eq 1 ]]; then
+  if check_keys; then
+    log "host ${CFG}: OK (shared-cache hygiene keys present)"
+    exit 0
+  fi
+  log "host ${CFG}: incomplete — run: bin/ensure-host-bundle-config"
+  exit 1
+fi
+
+mkdir -p "$(dirname "${CFG}")"
+if [[ ! -f "${CFG}" ]]; then
+  cat >"${CFG}" <<'EOF'
+---
+# Host global Bundler config (ensured by ubuntu-mise bin/ensure-host-bundle-config).
+# Behavior only — do not set BUNDLE_PATH=/cache here (container-only paths).
+# In-container paths: image ENV + home/.bundle/config under /cache.
+EOF
+  log "created ${CFG}"
+fi
+
+force_key() {
+  local key=$1 val=$2
+  if grep -qE "^${key}:" "${CFG}" 2>/dev/null; then
+    if grep -qE "^${key}:[[:space:]]*\"?${val}\"?" "${CFG}"; then
+      return 0
+    fi
+    sed -i "s/^${key}:.*/${key}: \"${val}\"/" "${CFG}"
+    log "set ${key}=${val} in ${CFG}"
+  else
+    printf '%s: "%s"\n' "${key}" "${val}" >>"${CFG}"
+    log "appended ${key}=${val} to ${CFG}"
+  fi
+}
+
+for key in BUNDLE_CLEAN BUNDLE_NO_PRUNE BUNDLE_CACHE_ALL BUNDLE_CACHE_ALL_PLATFORMS \
+  BUNDLE_DISABLE_SHARED_GEMS BUNDLE_JOBS BUNDLE_RETRY; do
+  force_key "${key}" "${WANT[$key]}"
+done
+
+log "host ${CFG}: ensured shared-cache hygiene keys"
+check_keys
