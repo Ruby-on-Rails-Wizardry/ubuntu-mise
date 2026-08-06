@@ -29,6 +29,8 @@ services:
         DEV_UID: ${DEV_UID:-1000}
         DEV_GID: ${DEV_GID:-1000}
         POSTGRESQL_VERSION: ${POSTGRESQL_VERSION:-}
+        # Optional private FROM (omit / empty → Dockerfile default ubuntu:24.04)
+        BASE_IMAGE: ${BASE_IMAGE:-ubuntu:24.04}
     working_dir: ${WORK_MOUNT:-/work}
     environment:
       # Do not override USER/HOME — match the image build.

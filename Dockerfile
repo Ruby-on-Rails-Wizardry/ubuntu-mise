@@ -2,8 +2,15 @@
 # Layout: home at /home/$USER; shared caches at /cache
 #   (Bundler, Yarn 1 + Berry, npm, pip/uv/poetry, mise).
 # Login shells (bash, ksh, sh/dash, zsh, fish) activate mise via shell rc files.
+#
+# BASE_IMAGE — Dockerfile FROM (public default ubuntu:24.04).
+# Override for private VPN/proxy bases without editing this file:
+#   BASE_IMAGE=registry.corp/ubuntu-vpn:24.04 bin/build
+#   base-image.env  (see base-image.env.example / docs/PRIVATE-BASE.md)
+#   docker build --build-arg BASE_IMAGE=…
 
-FROM ubuntu:24.04
+ARG BASE_IMAGE=ubuntu:24.04
+FROM ${BASE_IMAGE}
 
 # Container login name (default "dev"). Pair with DEV_UID / DEV_GID for bind mounts.
 ARG USER=dev

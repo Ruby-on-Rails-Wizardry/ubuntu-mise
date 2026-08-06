@@ -15,6 +15,9 @@ task config         # optional — show deduced host values (no write)
 task build          # → ubuntu-mise:dev (host USER/UID/GID as build-args)
 task warm           # fill volume `cache` for this tree (sample Gemfile/yarn/pip)
 task shell          # login shell; this dir (or PROJECT) at /work
+# Private/corporate FROM (proxy+certs base): docs/PRIVATE-BASE.md
+#   # once on GHE: commit base-image.env so all internal clones share BASE_IMAGE
+#   cp base-image.env.example base-image.env && task private:sync
 ```
 
 Without Task:
@@ -233,8 +236,9 @@ Do **not** set bash’s special `UID` (read-only); we use **`DEV_UID`**.
 | Variable | Default | Used by |
 |----------|---------|---------|
 | `POSTGRESQL_VERSION` | **18** (`.mise.env` / Dockerfile `ARG`) | Build-arg; empty = skip client |
-| `IMAGE` | `{flavor}:dev` | Image tag |
-| `CACHE_VOLUME` | `{flavor}-cache` | Named volume → `/cache` |
+| `BASE_IMAGE` | `ubuntu:24.04` (Dockerfile) | Dockerfile **FROM** — override via `base-image.env` / env ([PRIVATE-BASE.md](docs/PRIVATE-BASE.md)) |
+| `IMAGE` | `{flavor}:dev` | Image tag (what you `docker build -t`) |
+| `CACHE_VOLUME` | `cache` | Named volume → `/cache` |
 | `CACHE_ROOT` | `/cache` | In-container path |
 | `PROJECT` / `PWD` | CWD | Bind mount → `/work` |
 | `MISE_VERSION` | Dockerfile pin | mise installer (build only) |

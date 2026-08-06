@@ -40,6 +40,7 @@ ensure_remote() {
 
 ensure_remote github "${GITHUB_URL}"
 ensure_remote gitlab "${GITLAB_URL}"
+ensure_remote ami "${AMI_URL}"
 
 # Drop leftover origin if present (we use named remotes, not origin).
 if git remote get-url origin >/dev/null 2>&1; then
@@ -48,7 +49,8 @@ if git remote get-url origin >/dev/null 2>&1; then
 fi
 
 # Push to GitHub primary + GitLab backup when pushing to "github".
-# Fetch stays GitHub-only. Clear existing pushurl multi-values first.
+# Fetch stays GitHub-only. ami stays a separate named remote (git push ami).
+# Clear existing pushurl multi-values first.
 while git config --local --get-all remote.github.pushurl >/dev/null 2>&1; do
   git config --local --unset-all remote.github.pushurl || break
 done
@@ -56,10 +58,11 @@ done
 git remote set-url --push github "${GITHUB_URL}" 2>/dev/null \
   || git config --local remote.github.pushurl "${GITHUB_URL}"
 git remote set-url --add --push github "${GITLAB_URL}"
-log "github push URLs: GitHub (primary) + GitLab (backup)"
+log "github push URLs: GitHub (primary) + GitLab (backup); ami is separate"
 
 git fetch github 2>/dev/null || log "warning: git fetch github failed (network or empty remote)"
 git fetch gitlab 2>/dev/null || log "warning: git fetch gitlab failed (network or empty remote)"
+git fetch ami 2>/dev/null || log "warning: git fetch ami failed (LAN down or empty bare)"
 
 if git show-ref --verify --quiet "refs/heads/${BRANCH}"; then
   if git show-ref --verify --quiet "refs/remotes/github/${BRANCH}"; then
